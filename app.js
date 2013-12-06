@@ -54,6 +54,16 @@ var login = function (email, password, cb) {
     });
 };
 
+var searchUser = function(userName, cb) {
+    User.find({ name: userName }, function (err, users) {
+        if (err) throw err;
+        if (users.length > 0) {
+            cb(err, true);
+        } else {
+            cb(err, false);
+        }
+    });
+}
 
 // all environments
 app.set('port', process.env.PORT || 3000);
@@ -99,6 +109,17 @@ app.get('/register', function (req, res) {
             res.send('ko');
         }
     });
+});
+
+app.post('/search', function(req, res) {
+    searchUser(req.body.name, function(err, result) {
+        if (err) throw err;
+        if (result) {
+            res.send("there is the result: " + result);
+        } else {
+            res.send('no users found');
+        }
+    })
 });
 
 http.createServer(app).listen(app.get('port'), function(){
