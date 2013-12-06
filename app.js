@@ -11,6 +11,50 @@ var path = require('path');
 
 var app = express();
 
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/supbook', function (err) {
+    if (err) throw err;
+});
+
+var User = require('./models/user');
+
+
+var registerUser = function (email, name, forname, password, cb) {
+    User.find({
+        'email': email
+    }, function (err, users) {
+        if (users.length === 0) {
+            var user = new User({
+                'email': email,
+                'name': name,
+                'forname': forname,
+                'password': password
+            });
+            user.save(function (err) {
+                cb(err, true);
+            });
+        } else {
+            cb(null, false);
+        }
+    });
+};
+
+
+var login = function (email, password, cb) {
+    User.find({
+        'email': email,
+        'password': password
+    }, function (err, users) {
+        if (err) throw err;
+        if (users.length > 0) {
+            cb(err, true);
+        } else {
+            cb(err, false);
+        }
+    });
+};
+
+
 // all environments
 app.set('port', process.env.PORT || 3000);
 app.set('views', __dirname + '/views');
@@ -31,6 +75,31 @@ if ('development' == app.get('env')) {
 
 app.get('/', routes.index);
 app.get('/users', user.list);
+
+app.get('/login', function (req, res) {
+    res.render('login', { title: 'Express' });
+});
+
+app.post('/login', function (req, res) {
+    login(req.body.email, req.body.password, function (err, result) {
+        if (result) {
+            res.send('ok');
+        } else {
+            res.send('ko');
+        }
+    });
+});
+
+app.get('/register', function (req, res) {
+    registerUser(req.body.email, req.body.name, req.body.forname, req.body.password, function (err, result) {
+        if (err) throw err;
+        if (result) {
+            res.send('ok');
+        } else {
+            res.send('ko');
+        }
+    });
+});
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
