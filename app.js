@@ -17,6 +17,7 @@ mongoose.connect('mongodb://localhost/supbook', function (err) {
 });
 
 var User = require('./models/user');
+var Message = require('./models/message');
 
 
 var registerUser = function (email, name, forname, password, cb) {
@@ -47,7 +48,7 @@ var login = function (email, password, cb) {
     }, function (err, users) {
         if (err) throw err;
         if (users.length > 0) {
-            cb(err, true);
+            cb(err, users[0]._id);
         } else {
             cb(err, false);
         }
@@ -91,11 +92,12 @@ app.get('/login', function (req, res) {
 });
 
 app.post('/login', function (req, res) {
-    login(req.body.email, req.body.password, function (err, result) {
+    login(req.body.email, req.body.password, function (err, userId) {
+        req.session.userId = userId;
         req.session.email = req.body.email;
         if (err) throw err;
-        if (result) {
-            res.send('ok');
+        if (userId) {
+            res.redirect('/');
         } else {
             res.send('ko');
         }
@@ -110,7 +112,7 @@ app.post('/register', function (req, res) {
     registerUser(req.body.email, req.body.name, req.body.forname, req.body.password, function (err, result) {
         if (err) throw err;
         if (result) {
-            res.send('ok');
+            res.redirect('/');
         } else {
             res.send('ko');
         }
@@ -126,6 +128,43 @@ app.post('/search', function(req, res) {
             res.send('no users found');
         }
     })
+});
+
+var addPost = function (userId, message, cb) {
+    var message = new Message({
+        from: userId,
+        to: userId,
+        message: message
+    });
+    message.save(cb);
+};
+
+var addPostTo = function (fromUserId, toUserId, message, cb) {
+    var message = new Message({
+        from: fromUserId,
+        to: toUserId,
+        message: message
+    });
+    message.save(cb);
+};
+
+app.get('/post', function (req, res) {
+    res.render('post');
+});
+
+app.post('/post', function (req, res) {
+    if (!req.session.userId) {
+        res.send('no user');
+    } else {
+        addPost(req.session.userId, req.body.message, function (err, result) {
+            if (err) throw err;
+            if (result) {
+                res.send('ok');
+            } else {
+                res.send('ko');
+            }
+        });
+    }
 });
 
 http.createServer(app).listen(app.get('port'), function(){
