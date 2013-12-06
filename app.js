@@ -92,6 +92,8 @@ app.get('/login', function (req, res) {
 
 app.post('/login', function (req, res) {
     login(req.body.email, req.body.password, function (err, result) {
+        req.session.email = req.body.email;
+        if (err) throw err;
         if (result) {
             res.send('ok');
         } else {
@@ -101,6 +103,10 @@ app.post('/login', function (req, res) {
 });
 
 app.get('/register', function (req, res) {
+    res.render('register');
+});
+
+app.post('/register', function (req, res) {
     registerUser(req.body.email, req.body.name, req.body.forname, req.body.password, function (err, result) {
         if (err) throw err;
         if (result) {
