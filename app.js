@@ -127,9 +127,15 @@ app.post('/search', function(req, res) {
     searchUser(req.body.name, function(err, users) {
         if (err) throw err;
         if (!users) {
-            res.send("no users found");
+            res.send('no users found');
         } else {
-            res.send(users);
+            var searchResult = [];
+
+            for (var i = 0; i < users.length; i++) {
+                searchResult = users[i].name;
+            }
+
+            res.send('/addFriend');
         }
     })
 });
@@ -163,7 +169,7 @@ app.post('/post', function (req, res) {
         addPost(req.session.userId, req.body.message, function (err, result, users) {
             if (err) throw err;
             if (result) {
-                res.send(users);
+                res.write(users);
             } else {
                 res.send('ko');
             }
