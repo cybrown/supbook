@@ -135,7 +135,7 @@ app.post('/search', function(req, res) {
                 searchResult = users[i].name;
             }
 
-            res.send('/addFriend');
+            res.send(searchResult);
         }
     })
 });
@@ -166,10 +166,10 @@ app.post('/post', function (req, res) {
     if (!req.session.userId) {
         res.send('no user');
     } else {
-        addPost(req.session.userId, req.body.message, function (err, result, users) {
+        addPost(req.session.userId, req.body.message, function (err, result) {
             if (err) throw err;
             if (result) {
-                res.write(users);
+                res.send(req.body.message);
             } else {
                 res.send('ko');
             }
