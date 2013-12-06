@@ -59,9 +59,9 @@ var searchUser = function(userName, cb) {
     User.find({ name: userName }, function (err, users) {
         if (err) throw err;
         if (users.length > 0) {
-            cb(err, true);
+            cb(err, users);
         } else {
-            cb(err, false);
+            cb(err, null);
         }
     });
 }
@@ -119,13 +119,17 @@ app.post('/register', function (req, res) {
     });
 });
 
+app.get('/search', function (req, res) {
+    res.render('search');
+});
+
 app.post('/search', function(req, res) {
-    searchUser(req.body.name, function(err, result) {
+    searchUser(req.body.name, function(err, users) {
         if (err) throw err;
-        if (result) {
-            res.send("there is the result: " + result);
+        if (!users) {
+            res.send("no users found");
         } else {
-            res.send('no users found');
+            res.send(users);
         }
     })
 });
@@ -156,10 +160,10 @@ app.post('/post', function (req, res) {
     if (!req.session.userId) {
         res.send('no user');
     } else {
-        addPost(req.session.userId, req.body.message, function (err, result) {
+        addPost(req.session.userId, req.body.message, function (err, result, users) {
             if (err) throw err;
             if (result) {
-                res.send('ok');
+                res.send(users);
             } else {
                 res.send('ko');
             }
